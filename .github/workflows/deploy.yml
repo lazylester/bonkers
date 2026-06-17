@@ -68,6 +68,9 @@ jobs:
           push: true
           # Kamal expects lowercase image paths. Enforce lowercase strings if needed.
           tags: ghcr.io/lazylester/bonkers:${{ github.sha }}
+          # CRUCIAL FIX: Inject the tracking metadata Kamal demands to orchestrate your app
+          labels: |
+            service=bonkers
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
