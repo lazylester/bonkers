@@ -1,0 +1,37 @@
+service: bonkers
+image: lazylester/bonkers
+
+proxy:
+  app_port: 3000
+
+# Deploy to your remote server architecture
+servers:
+  web:
+    - <%= ENV["DEPLOY_SERVER_IP"] %>
+
+builder:
+  arch: x86-64
+  #cache:
+  #  # Configure Kamal to stream build layers directly into GitHub Actions cache storage
+  #  type: gha
+  #  options: mode=max
+  #  image: bonkers-build-cache # An arbitrary tag name to group your cache files
+  secrets:
+    - RAILS_MASTER_KEY
+
+# Match the registry to GitHub Container Registry
+registry:
+  server: ghcr.io
+  username: lazylester
+  password:
+    - GHCR_ACCESS_TOKEN
+
+# Ensure Kamal looks for env variables passed from GitHub Actions
+env:
+  clear:
+    RAILS_ENV: production
+    PORT: 3000
+  secret:
+    - RAILS_MASTER_KEY
+    - RAILS_MASTER_KEY_PRODUCTION
+    - SECRET_KEY_BASE
