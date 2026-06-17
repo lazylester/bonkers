@@ -67,7 +67,7 @@ jobs:
           context: .
           push: true
           # Kamal expects lowercase image paths. Enforce lowercase strings if needed.
-          tags: ghcr.io/lazylester/bonkers
+          tags: ghcr.io/lazylester/bonkers:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
