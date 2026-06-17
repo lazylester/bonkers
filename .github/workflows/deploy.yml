@@ -97,8 +97,6 @@ jobs:
           echo "RAILS_MASTER_KEY='$RAILS_MASTER_KEY'" >> .kamal/secrets
           echo "RAILS_MASTER_KEY_PRODUCTION='$RAILS_MASTER_KEY_PRODUCTION'" >> .kamal/secrets
           echo "SECRET_KEY_BASE='$SECRET_KEY_BASE'" >> .kamal/secrets
-          # TODO remove this next line
-          cat .kamal/secrets
 
           # 4. Deploy this exact version
           kamal deploy --skip-push --version="${{ github.sha }}"
