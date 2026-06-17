@@ -81,8 +81,19 @@ jobs:
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
         run: |
-          # Prevent SSH prompt hangs on the runner
-          ssh-keyscan -H ${{ secrets.DEPLOY_SERVER_IP }} >> ~/.ssh/known_hosts
+          # 1. Ensure the ~/.ssh folder exists
+          mkdir -p ~/.ssh
 
-          # CHANGE '--skip-build' to '--skip-push' (or '-P')
-          kamal deploy --skip-push
+          # 2. CRUCIAL FIX: Scan without "-H" to output a plain text fingerprint.
+          # This allows Kamal's Ruby engine to successfully read and trust the host key.
+          ssh-keyscan ${{ secrets.DEPLOY_SERVER_IP }} >> ~/.ssh/known_hosts
+
+          # 3. Create the .kamal directory and populate the secrets file
+          mkdir -p .kamal
+          echo "GHCR_ACCESS_TOKEN=$GHCR_ACCESS_TOKEN" >> .kamal/secrets
+          echo "RAILS_MASTER_KEY=$RAILS_MASTER_KEY" >> .kamal/secrets
+          echo "RAILS_MASTER_KEY_PRODUCTION=$RAILS_MASTER_KEY_PRODUCTION" >> .kamal/secrets
+          echo "SECRET_KEY_BASE=$SECRET_KEY_BASE" >> .kamal/secrets
+
+          # 4. Deploy this exact version
+          kamal deploy --skip-push --version="${{ github.sha }}"
