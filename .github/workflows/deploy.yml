@@ -12,55 +12,37 @@ jobs:
       packages: write
 
     steps:
+      # 1.
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Set up Ruby (Required to execute Kamal)
+      # 2. Set up Ruby (Required to execute Kamal)
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "4.0.5"
           bundle-cache: true
 
-      # 2. Install Kamal tool
+      # 3. Install Kamal tool
       - name: Install Kamal
         run: gem install kamal -v 2.4.0
 
-      # 3. Configure SSH access to the remote server
+      # 4. Configure SSH access to the remote server
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      # 4. Authenticate with GitHub Container Registry
-      #- name: Log in to GHCR
-      #  uses: docker/login-action@v3
-      #  with:
-      #    registry: ghcr.io
-      #    # github.actor :
-      #    # A variable containing the username of the person who triggered the workflow.
-      #    # Where it comes from: The github context object, which holds information about the workflow run.
-      #    # How it's used here: If your username is johndoe and you push code to main,
-      #    # github.actor automatically resolves to johndoe.
-      #    # This dynamically populates your registry username without hardcoding it.
-      #    username: ${{ github.actor }}
-      #    #secrets.GITHUB_TOKEN:
-      #    # A temporary, automatically generated security token created specifically for that individual job.
-      #    # GitHub provisions this token at the start of the job and completely destroys it as soon as the job finishes.
-      #    # It acts as an instant password to authenticate your build runner with the GitHub Container Registry (ghcr.io).
-      #    # Because we added permissions: packages: write at the top of the job,
-      #    # GitHub automatically gives this specific token permission to push your built Docker image into your registry.
-      #    password: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 5: Log in to GHCR (Satisfies Kamal's local verification check)
       - name: Log in to GHCR
         run: |
           echo "${{ secrets.GHCR_ACCESS_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # 5. Build and Push the image using Docker Buildx
+      # 6.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # 7: Build and Push the image using Docker Buildx
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
@@ -74,7 +56,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 6. Run Kamal Deploy
+      # 8. Run Kamal Deploy
       - name: Run Kamal Deploy
         env:
           GHCR_ACCESS_TOKEN: ${{ secrets.GHCR_ACCESS_TOKEN }}
@@ -84,21 +66,14 @@ jobs:
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
 
         run: |
-          # 1. Ensure the ~/.ssh folder exists
           mkdir -p ~/.ssh
+          ssh-keyscan $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
 
-          # 2. CRUCIAL FIX: Scan without "-H" to output a plain text fingerprint.
-          # This allows Kamal's Ruby engine to successfully read and trust the host key.
-          ssh-keyscan ${{ secrets.DEPLOY_SERVER_IP }} >> ~/.ssh/known_hosts
-
-          # 3. Create the .kamal directory and populate the secrets file
           mkdir -p .kamal
 
-          echo "GHCR_ACCESS_TOKEN=$(echo "${GHCR_ACCESS_TOKEN}" | tr -d '\n\r ')" > .kamal/secrets
-          echo "RAILS_MASTER_KEY=$(echo "${RAILS_MASTER_KEY}" | tr -d '\n\r ')" >> .kamal/secrets
-          echo "RAILS_MASTER_KEY_PRODUCTION=$(echo "${RAILS_MASTER_KEY}" | tr -d '\n\r ')" >> .kamal/secrets
-          echo "SECRET_KEY_BASE=$(echo "${SECRET_KEY_BASE}" | tr -d '\n\r ')" >> .kamal/secrets
+          echo "GHCR_ACCESS_TOKEN=$(echo "$GHCR_ACCESS_TOKEN" | tr -d '\n\r ')" > .kamal/secrets
+          echo "RAILS_MASTER_KEY=$(echo "$RAILS_MASTER_KEY" | tr -d '\n\r ')" >> .kamal/secrets
+          echo "RAILS_MASTER_KEY_PRODUCTION=$(echo "$RAILS_MASTER_KEY" | tr -d '\n\r ')" >> .kamal/secrets
+          echo "SECRET_KEY_BASE=$(echo "$SECRET_KEY_BASE" | tr -d '\n\r ')" >> .kamal/secrets
 
-
-          # 4. Deploy this exact version
-          kamal redeploy  --version="${{ github.sha }}"
+          kamal redeploy --version="${{ github.sha }}"
