@@ -99,4 +99,4 @@ jobs:
           echo "SECRET_KEY_BASE='$SECRET_KEY_BASE' | tr -d '\n\r ')" >> .kamal/secrets
 
           # 4. Deploy this exact version
-          kamal deploy --skip-push --version="${{ github.sha }}"
+          kamal redeploy  --version="${{ github.sha }}"
