@@ -71,9 +71,12 @@ jobs:
 
           mkdir -p .kamal
 
-          echo "GHCR_ACCESS_TOKEN=$(echo "$GHCR_ACCESS_TOKEN" | tr -d '\n\r ')" > .kamal/secrets
-          echo "RAILS_MASTER_KEY=$(echo "$RAILS_MASTER_KEY" | tr -d '\n\r ')" >> .kamal/secrets
-          echo "RAILS_MASTER_KEY_PRODUCTION=$(echo "$RAILS_MASTER_KEY" | tr -d '\n\r ')" >> .kamal/secrets
-          echo "SECRET_KEY_BASE=$(echo "$SECRET_KEY_BASE" | tr -d '\n\r ')" >> .kamal/secrets
+          # Writing variables using a Heredoc preserves the raw string lengths perfectly
+          cat <<-EOF > .kamal/secrets
+          GHCR_ACCESS_TOKEN=$GHCR_ACCESS_TOKEN
+          RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+          RAILS_MASTER_KEY_PRODUCTION=$RAILS_MASTER_KEY
+          SECRET_KEY_BASE=$SECRET_KEY_BASE
+          EOF
 
           kamal redeploy --version="${{ github.sha }}"
