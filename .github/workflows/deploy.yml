@@ -70,11 +70,13 @@ jobs:
           ssh-keyscan $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
 
           mkdir -p .kamal
+          # Slice the key strings to guarantee they are exactly 32 characters long (16 bytes)
+          CLEAN_KEY="${RAILS_MASTER_KEY:0:32}"
 
           # Writing variables using a Heredoc preserves the raw string lengths perfectly
           cat <<-EOF > .kamal/secrets
           GHCR_ACCESS_TOKEN=$GHCR_ACCESS_TOKEN
-          RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+          RAILS_MASTER_KEY=$CLEAN_KEY
           RAILS_MASTER_KEY_PRODUCTION=$RAILS_MASTER_KEY
           SECRET_KEY_BASE=$SECRET_KEY_BASE
           EOF
