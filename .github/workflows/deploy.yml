@@ -93,10 +93,10 @@ jobs:
 
           # 3. Create the .kamal directory and populate the secrets file
           mkdir -p .kamal
-          echo "GHCR_ACCESS_TOKEN='$GHCR_ACCESS_TOKEN'" >> .kamal/secrets
-          echo "RAILS_MASTER_KEY='$RAILS_MASTER_KEY'" >> .kamal/secrets
-          echo "RAILS_MASTER_KEY_PRODUCTION='$RAILS_MASTER_KEY_PRODUCTION'" >> .kamal/secrets
-          echo "SECRET_KEY_BASE='$SECRET_KEY_BASE'" >> .kamal/secrets
+          echo "GHCR_ACCESS_TOKEN='$GHCR_ACCESS_TOKEN' | tr -d '\n\r ')" >> .kamal/secrets
+          echo "RAILS_MASTER_KEY='$RAILS_MASTER_KEY' | tr -d '\n\r ')" >> .kamal/secrets
+          echo "RAILS_MASTER_KEY_PRODUCTION='$RAILS_MASTER_KEY_PRODUCTION'" | tr -d '\n\r ') >> .kamal/secrets
+          echo "SECRET_KEY_BASE='$SECRET_KEY_BASE'" | tr -d '\n\r ') >> .kamal/secrets
 
           # 4. Deploy this exact version
           kamal deploy --skip-push --version="${{ github.sha }}"
