@@ -44,7 +44,7 @@ jobs:
 
       # 7: Build and Push the image using Docker Buildx
       - name: Build and push image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
